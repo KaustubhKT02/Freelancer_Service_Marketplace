@@ -1,25 +1,37 @@
-import sequalize from 'sequelize';
+import { Sequelize } from 'sequelize';
+import dotenv from 'dotenv';
 
-const db = new sequalize ('postgresql://postgres:OxQDypgq6efX78Lo@db.rtbjqqsddfvqnctzpzxx.supabase.co:5432/postgres', {
-    dialect: 'postgres',
+dotenv.config();
+
+// Database connection configuration
+const db = new Sequelize(
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  {
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT || 'postgres',
+    port: process.env.DB_PORT || 5432,
+    logging: false,
     dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false
-        }
-    },
-    logging: false
-})
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    }
+  }
+);
 
+// Test the database connection
 const connectionDb = async () => {
-    try {
-    await sequalize.authenticate();
+  try {
+    await db.authenticate();
     console.log('Connection has been established successfully.');
-
-} catch (error) {
+  } catch (error) {
     console.error('Unable to connect to the database:', error);
-}
-}
+  }
+};
 
 
-export {db, connectionDb};
+
+export { db , connectionDb };

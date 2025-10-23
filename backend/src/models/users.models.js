@@ -1,7 +1,7 @@
 import db from '../config/db.config.js';
 import { DataTypes } from 'sequelize';
 
-const Users = db.define('users', {
+const users = db.define('users', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -14,11 +14,17 @@ const Users = db.define('users', {
     email: {
         type: DataTypes.STRING(150),
         allowNull: false,
-        unique: true
+        unique: true,
+        validator: {
+            isEmail: true,
+        }
     },
     password: {
         type: DataTypes.STRING(255),
-        allowNull: false
+        allowNull: false,
+        validators: {
+            is: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/ 
+        }
     },
     role: {
         type: DataTypes.ENUM('Client', 'Freelancer', 'Admin'),
@@ -45,4 +51,4 @@ const Users = db.define('users', {
     }, {timestamps:true})
 
 
-export default Users;
+export default users;
