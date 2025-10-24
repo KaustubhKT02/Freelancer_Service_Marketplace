@@ -1,11 +1,31 @@
 import express from "express";
-import { connectionDb } from "./config/db.config.js";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 
 const app = express();
 
-// Establish database connection
-connectionDb();
 
+// Middleware
+app.use(cors(
+    {
+        origin: 'process.env.CORS_URL',
+        credentials: true
+    }
+));
+
+app.use(express.json(
+    {
+        limit: '50mb'
+    }
+));
+
+app.use(express.urlencoded(extended = true, {
+    limit: '50mb',
+}));
+
+app.use(express.static('public'))
+
+app.use(cookieParser());
 
 export default app;
