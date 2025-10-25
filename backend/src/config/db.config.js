@@ -33,5 +33,5 @@ const connectionDb = async () => {
 };
 
 
+export  { db, connectionDb };
 
-export { db , connectionDb };

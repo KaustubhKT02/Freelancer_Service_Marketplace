@@ -1,7 +1,7 @@
-import { db } from "../config/db.config";
+import {db} from '../config/db.config.js';
 import users from "./users.models.js";
 import projects from "./projects.models.js";
-import proposals from "./proposals.models.js";
+import proposals from "./proposal.models.js";
 import messages from "./messages.models.js";
 import reviews from "./reviews.models.js";
 

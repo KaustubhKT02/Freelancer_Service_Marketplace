@@ -1,8 +1,8 @@
-import db from '../config/db.config.js';
+import {db} from '../config/db.config.js';
 import { DataTypes } from 'sequelize';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken';
-import { use } from 'react';
+
 
 const users = db.define('users', {
     id: {
@@ -83,12 +83,12 @@ const users = db.define('users', {
     });
 
     // method to compare password
-    users.methods.comparePassword = async function (password) {
+    users.prototype.comparePassword = async function (password) {
         await bcrypt.compare(password, this.password); // comparing hashed password
     }
 
     // method to generate JWT token
-    users.methods.genrateToken = function () {
+    users.prototype.genrateToken = function () {
         return jwt.sign(
             {
                 id: this.id,
@@ -104,7 +104,7 @@ const users = db.define('users', {
     }
     
     // method to generate refresh token
-    users.methodes.genrateRefreshToken = function () {
+    users.prototype.genrateRefreshToken = function () {
          return jwt.sign(
             {
                 id: this.id,

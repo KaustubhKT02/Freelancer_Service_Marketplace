@@ -1,14 +1,14 @@
-import db from '../config/database.js';
-import {DataType} from 'sequelize';
+import {db} from '../config/db.config.js'
+import { DataTypes } from 'sequelize';
 
 const messages = db.define('messages', {
     id: {
-        type: DataType.INTEGER,
-        primarykey: true,
+        type: DataTypes.INTEGER,
+        primaryKey: true,
         autoIncrement: true
     },
     sender_id: {
-        type: DataType.INTEGER,
+        type: DataTypes.INTEGER,
         allowNull: false,
         referances: {
             model: 'users',
@@ -17,7 +17,7 @@ const messages = db.define('messages', {
         }
     },
     reciver_id: {
-        type:DataType.INTEGER,
+        type:DataTypes.INTEGER,
         allowNull: false,
         referances: {
             model: 'users',
@@ -26,11 +26,11 @@ const messages = db.define('messages', {
         }
     },
     content: {
-        type: DataType.TEXT, 
+        type: DataTypes.TEXT, 
         allowNull: false,
     },
     is_read: {
-        type: DataType.BOOLEAN,
+        type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false
     }

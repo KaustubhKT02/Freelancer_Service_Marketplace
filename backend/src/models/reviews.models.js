@@ -1,4 +1,4 @@
-import { db } from "../config/db.config";
+import { db } from "../config/db.config.js";
 import { DataTypes } from "sequelize";
 
 const reviews = db.define('reviews', {

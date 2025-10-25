@@ -1,14 +1,14 @@
-import { db } from "../config/db.config";
-import { DataTypes, Model } from "sequelize";
+import {db} from '../config/db.config.js'
+import { DataTypes} from "sequelize";
 
-const Projects = db.define('projects', {
+const projects = db.define('projects', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
     title: {
-        types: DataTypes.STRING(200),
+        type: DataTypes.STRING(150),
         require: true,
         allowNull: false
     }, 
@@ -47,4 +47,4 @@ const Projects = db.define('projects', {
 
 }, { timestamps: true, createdAt: 'created_at' });
 
-export default Projects;
+export default projects;

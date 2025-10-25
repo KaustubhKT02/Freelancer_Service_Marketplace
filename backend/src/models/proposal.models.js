@@ -1,7 +1,7 @@
-import db from '../config/database.js';
+import {db} from '../config/db.config.js';
 import { DataTypes } from 'sequelize';
 
-const propsals = db.define('proposals', {
+const proposals = db.define('proposals', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -44,3 +44,5 @@ const propsals = db.define('proposals', {
         defaultValue: 'pending'
     }
 }, {timestamps: true, createdAT: 'created_at'});
+
+export default proposals;
