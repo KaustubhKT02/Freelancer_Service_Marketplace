@@ -1,3 +1,4 @@
+// Custom API Error class to standardize error handling across the application
 class apiError extends Error {
     constructor(statusCode,
         message= 'Something went wrong',

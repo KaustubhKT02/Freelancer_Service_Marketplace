@@ -1,3 +1,4 @@
+// Utility class for standardizing API responses
 class apiResponse {
     constructor(
         statusCode,data, message = 'Request Successful'

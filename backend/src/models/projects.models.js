@@ -9,11 +9,14 @@ const Projects = db.define('projects', {
     },
     title: {
         types: DataTypes.STRING(200),
+        require: true,
         allowNull: false
     }, 
     description: {
         type: DataTypes.TEXT,
+        require: true,
         allowNull: false
+
     },
     budget: {
         type: DataTypes.DECIMAL(10,2),

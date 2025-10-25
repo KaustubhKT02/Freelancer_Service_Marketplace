@@ -1,3 +1,4 @@
+// Utility function to handle asynchronous route handlers
 const asyncHandler = (fn) => async ()=> {
     try {
         await fn(eq, res, next)
