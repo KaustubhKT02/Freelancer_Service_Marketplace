@@ -14,19 +14,19 @@ app.use(cors(
         credentials: true
     }
 ));
-
 app.use(express.json(
     {
         limit: '50mb'
     }
 ));
-
-app.use(express.urlencoded(extended = true, {
-    limit: '50mb',
-}));
-
+app.use(express.urlencoded({extends: true, limit: '50mb'}));
 app.use(express.static('public'))
-
 app.use(cookieParser());
+
+// Routes
+import userRoutes from './routes/user.routes.js';
+
+// User Routes
+app.use('/api/v1/users', userRoutes);
 
 export default app;
