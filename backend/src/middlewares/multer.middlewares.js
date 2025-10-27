@@ -1,4 +1,5 @@
 import multer from 'multer';
+import users from '../models/users.models.js';
 
 // Set up multer storage configuration
 const storage = multer.diskStorage({
@@ -7,8 +8,8 @@ const storage = multer.diskStorage({
   },
 
   filename: function (req, file, cb) {
-    
-    cb(null, file.originalname)
+    const name = req.body.username + '-' + Date.now();
+    cb(null, file.name)
   }
 })
 
