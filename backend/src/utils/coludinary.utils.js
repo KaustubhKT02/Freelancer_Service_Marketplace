@@ -17,13 +17,15 @@ const uploadCloudinary = async (localFilePath) => {
 
         // Upload the file to Cloudinary
         const result = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: ['image', 'raw'] // Allow both image and raw file types,
+            resource_type: 'auto',
+            folder: 'Freelance Marketplace'
         });
         console.log('Cloudinary upload result:', result.url);
         return result;
+        fs.unlinkSync(localFilePath)
 
     } catch (error) {
-        fs.unlinkSync(localFilePath); // Delete the local file in case of error
+        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath); // delete file if error 
         console.error('Error uploading to Cloudinary:', error);
         throw error;
     }

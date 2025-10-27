@@ -1,6 +1,6 @@
 import {db} from '../config/db.config.js';
 import { DataTypes } from 'sequelize';
-import bcrypt from 'bcrypt'
+import bcrypt, { hash } from 'bcrypt'
 import jwt from 'jsonwebtoken';
 
 
@@ -15,33 +15,34 @@ const users = db.define('users', {
         type: DataTypes.STRING(50),
         allowNull: false,
         unique: true,
-        index: true,
-        tolowercase: true,
-        trim: true
+        set(value) {
+            this.setDataValue('username', value.trim().toLowerCase())
+        } 
     },
 
-    name: {
+    fullname: {
         type: DataTypes.STRING(100),
         allowNull: false,
-        trim: true,
-        require: true,
-        index: true
-         
+        set(value) {
+            this.setDataValue('fullname', value.trim())
+        }         
     },
     email: {
         type: DataTypes.STRING(150),
         allowNull: false,
         unique: true,
-        require: true,
-        validator: {
+        set(value) {
+          this.setDataValue('email', value.trim().toLowerCase())  
+        },
+
+        validate: {
             isEmail: true,
         }
     },
     password: {
         type: DataTypes.STRING(255),
         allowNull: false,
-        require: [true, 'Password is required'],
-        validators: {
+        validate: {
             is: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/ 
         }
     },
@@ -57,38 +58,53 @@ const users = db.define('users', {
     rating_avg: {
         type: DataTypes.DECIMAL(3,2),
         allowNull: true,
-        validators: {
+        validate: {
             min: 0,
             max: 5
         }
     }, 
-    Profile: {
+    avatar: {
         type: DataTypes.STRING,
         allowNull: true
     },
     
-    refrashToken: {
+    refreshToken: {
         type: DataTypes.TEXT,
         allowNull: true
     }
 
-    }, {timestamps:true})
+    }, {timestamps:true,
+        defaultScope: {
+            attributes: {exclude: ['password', 'refreshToken']}
+        },
+        
+        scopes: {
+            withSensitive: {
+                attributes: {include: ['password', 'refreshToken']}
+            }
+        }
+    })
 
     // adding hooks to hash password before saving
-    users.addHook('beforeSave', async function (next) {
-        if (!this.isModified('password')) return next();
-
-        this.password = await bcrypt.hash(this.password, 10);  // hashing password with salt rounds of 10
-        next();
+    users.beforeCreate(async (user)=> {
+        if(user.password) {
+           user.password =  await bcrypt.hash(user.password, 10)
+        }
     });
 
+    users.beforeUpdate(async (user)=> {
+        if(user.changed('password')) {
+           user.password = await bcrypt.hash(user.password, 10)
+        }
+    })
+
     // method to compare password
-    users.prototype.comparePassword = async function (password) {
-        await bcrypt.compare(password, this.password); // comparing hashed password
-    }
+    users.prototype.comparePassword = async function(password) {
+       return bcrypt.compare(password, this.password);  // compare password using promise
+    };
 
     // method to generate JWT token
-    users.prototype.genrateToken = function () {
+    users.prototype.generateToken = function () {
         return jwt.sign(
             {
                 id: this.id,
@@ -104,12 +120,12 @@ const users = db.define('users', {
     }
     
     // method to generate refresh token
-    users.prototype.genrateRefreshToken = function () {
+    users.prototype.generateRefreshToken = function () {
          return jwt.sign(
             {
                 id: this.id,
             },
-            process.env.JWT_REFRESH_SERCRET,
+            process.env.JWT_REFRESH_SECRET,
             { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN }
         )
     }

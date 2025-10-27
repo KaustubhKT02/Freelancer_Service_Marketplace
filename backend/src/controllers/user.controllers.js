@@ -1,31 +1,36 @@
 import { asyncHandler } from "../utils/asyncHandler.utils.js";
 import users from "../models/users.models.js";
 import { apiError } from "../utils/apiError.utils.js";
-import uploadCloudinary from "../utils/coludinary.utils.js";
+import {uploadCloudinary} from "../utils/coludinary.utils.js";
 import { apiResponse } from "../utils/apiResponse.utils.js";
+import { Op } from 'sequelize';
+import path from "path";
+
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, username, email, password, role, bio } = req.body;
+  const { fullname, username, email, password, role, bio } = req.body;
 
   // Validate required fields
   if (
-    [name, username, email, password, role].some(
+    [fullname, username, email, password, role].some(
       (field) => field?.trim() === ""
     )
   ) {
-    throw new apiError(400, "All fields are required", s);
+    throw new apiError(400, "All fields are required");
   }
 
   // Check if user already exists
-  const existedUser = users.findOne({
-    $or: [{ email }, { username }],
+  const existedUser = await users.findOne({
+    where: {
+       [ Op.or]: [{ email }, { username }],
+    }
   });
 
   if (existedUser) {
     throw new apiError(409, "User with this email or username already exists");
   }
 
-  const profilePicture = req.files?.profilePicture[0]?.path; // Access the uploaded file path
+  const profilePicture = req.file?.path; // Access the uploaded file path
   if (!profilePicture) {
     throw new apiError(400, "Profile picture is required");
   }
@@ -37,27 +42,24 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //    Create new user
   const newUser = await users.create({
-    name,
+    fullname,
     username: username.toLowerCase(),
     email,
     password,
     role,
     bio,
-    Profile: Profile.url, // Store the Cloudinary URL
+    avatar: Profile.url, // Store the Cloudinary URL
   });
 
-  // Return created user data without password and refreshToken
-  const createdUser = await users
-    .findByPk(newUser.id)
-    .select("-password, -refreshToken");
-
-  if (!createdUser) {
-    throw new apiError(500, "User registration failed");
+  const createUser  = await users.findByPk(newUser.id)
+  if(!createUser) {
+    throw new apiError(500, "User registration failed")
   }
+
 
   return res
     .status(201)
-    .json(new apiResponse(201, createdUser, "user registered successfully"));
+    .json(new apiResponse(201, createUser,  "user registered successfully"));
 });
 
 export { registerUser };
