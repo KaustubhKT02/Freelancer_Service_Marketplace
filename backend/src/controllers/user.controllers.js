@@ -4,7 +4,7 @@ import { apiError } from "../utils/apiError.utils.js";
 import {uploadCloudinary} from "../utils/coludinary.utils.js";
 import { apiResponse } from "../utils/apiResponse.utils.js";
 import { Op } from 'sequelize';
-import {JWT} from "jsonwebtoken";
+import JWT from "jsonwebtoken";
 
 const generateTokenAndRefreshToken = async(userId) => {
   try {
