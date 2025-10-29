@@ -4,7 +4,7 @@ import { apiError } from "../utils/apiError.utils.js";
 import {uploadCloudinary} from "../utils/coludinary.utils.js";
 import { apiResponse } from "../utils/apiResponse.utils.js";
 import { Op } from 'sequelize';
-import { use } from "react";
+import {JWT} from "jsonwebtoken";
 
 const generateTokenAndRefreshToken = async(userId) => {
   try {
@@ -85,15 +85,20 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async(req, res)=> {
   
-  const {username, email, password} = req.body;
+  const {email, username, password} = req.body;
   
-  if(!username || !email) {
+  if(!(username || email)) {
     throw new apiError(400, "username or email is required");
   }
 
+  // add filter to push username 
+  const filter = []
+  if(username) filter.push({username});
+  if(email) filter.push({email});
+
  const user = await users.scope('withSensitive').findOne({
     where: {
-      [Op.or] : [{username},{email}]
+      [Op.or]: filter
     }
   });
 
@@ -108,8 +113,7 @@ const loginUser = asyncHandler(async(req, res)=> {
  }
 
 
-const {accessToken, refreshToken} = await
-await generateTokenAndRefreshToken(user.id)
+const {accessToken, refreshToken} = await generateTokenAndRefreshToken(user.id)
 
 const loginUser = await users.findByPk(user.id, {
   attributes: {exclude: ['password', 'refreshToken']}
@@ -157,6 +161,45 @@ const logoutUser = asyncHandler(async(req, res)=> {
 
 })
 
+const refreshAccessToken =asyncHandler(async (req, res)=> {
+  const incomingRefreshToken =  req.cookies.refreshToken || req.body.refreshToken;
+
+  if(!incomingRefreshToken) {
+    throw new apiError(401, "unauthorizzed request");
+  }
+
+ try {
+   const verifyToken = JWT.verify(incomingRefreshToken, process.env.JWT_REFRESH_SECRET);
+ 
+   const user = users.findByPk(verifyToken?.id)
+ 
+   if(!user) {
+     throw new apiError(401, "Invalid refresh token")
+   }
+ 
+   if(incomingRefreshToken !== user?.refreshToken) {
+     throw new apiError(401, "Refresh token is expired or used")
+   }
+ 
+   const options = {
+     httpOnly:true,
+     secure: true
+   } 
+ 
+   const {accessToken, newRefreshToken} =  await generateTokenAndRefreshToken(user.id);
+ 
+   return res.status(200)
+   .cookie("accessToken", accessToken)
+   .cookie("refreshToken", newRefreshToken)
+   .json(
+     new apiResponse(
+       200, "Access token refreshed"
+     )
+   )
+ } catch (error) {
+  throw new apiError(401, error?.message || "Invalid Token")
+ }
+})
 
 
-export { registerUser, loginUser, logoutUser };
+export { registerUser, loginUser, logoutUser, refreshAccessToken };
