@@ -4,7 +4,28 @@ import { apiError } from "../utils/apiError.utils.js";
 import {uploadCloudinary} from "../utils/coludinary.utils.js";
 import { apiResponse } from "../utils/apiResponse.utils.js";
 import { Op } from 'sequelize';
-import path from "path";
+import { use } from "react";
+
+const generateTokenAndRefreshToken = async(userId) => {
+  try {
+    const user = await users.findByPk(userId);
+    if(!user) {
+      throw new apiError(404, "User not found")
+    }
+
+    // get user access
+    const accessToken = user.generateToken();
+    const refreshToken = user.generateRefreshToken();
+
+    // save refreshToken in DB
+    user.refreshToken = refreshToken
+    await user.save({validate: false});
+
+    return {accessToken, refreshToken}
+  } catch(error) {
+    throw new apiError(500, "Somthing went wrong while genrating referesh and access token")
+  }
+}
 
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -62,4 +83,80 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new apiResponse(201, createUser,  "user registered successfully"));
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async(req, res)=> {
+  
+  const {username, email, password} = req.body;
+  
+  if(!username || !email) {
+    throw new apiError(400, "username or email is required");
+  }
+
+ const user = await users.scope('withSensitive').findOne({
+    where: {
+      [Op.or] : [{username},{email}]
+    }
+  });
+
+  if(!user) {
+    new apiError(404, "User does not exitst")
+  }
+
+ const isPasswordVaild = await user.comparePassword(password);
+
+ if(!isPasswordVaild) {
+  throw apiError(401, "Invalid user credentials");
+ }
+
+
+const {accessToken, refreshToken} = await
+await generateTokenAndRefreshToken(user.id)
+
+const loginUser = await users.findByPk(user.id, {
+  attributes: {exclude: ['password', 'refreshToken']}
+});
+
+
+const options = {
+  httpOnly: true,
+  secure: true
+}
+
+return res.status(200)
+.cookie("accessToken", accessToken, options)
+.cookie("refreshToken", refreshToken, options)
+.json(new apiResponse(
+  200, 
+  {
+    user: loginUser, accessToken, refreshToken
+  },
+  "USer logged In Successfully"
+)) 
+}) 
+
+const logoutUser = asyncHandler(async(req, res)=> {
+  const [update] = await users.update(
+    {refreshToken: null}, 
+    {where: {id: req.user.id,}}
+  )
+
+  if(!update) {
+    throw apiError(401, "User Not Found")
+  }
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  }
+
+  return res
+  .status(200)
+  .clearCookie("accessToken", options)
+  .clearCookie("refreshToken", options)
+  .json(new apiResponse(200, {}, "User logged Out"))
+
+
+})
+
+
+
+export { registerUser, loginUser, logoutUser };

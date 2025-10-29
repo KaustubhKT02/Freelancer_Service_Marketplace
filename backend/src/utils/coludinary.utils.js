@@ -1,5 +1,5 @@
 import {v2 as cloudinary} from 'cloudinary';
-import fs from 'fs';
+import {promises as fs} from 'fs';
 
 // Configure Cloudinary with credentials from environment variables
 cloudinary.config({
@@ -20,12 +20,14 @@ const uploadCloudinary = async (localFilePath) => {
             resource_type: 'auto',
             folder: 'Freelance Marketplace'
         });
-        console.log('Cloudinary upload result:', result.url);
+        // console.log('Cloudinary upload result:', result.url);
+
+       await fs.unlinkSync(localFilePath);
         return result;
-        fs.unlinkSync(localFilePath)
+        
 
     } catch (error) {
-        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath); // delete file if error 
+        await fs.unlinkSync(localFilePath);
         console.error('Error uploading to Cloudinary:', error);
         throw error;
     }
