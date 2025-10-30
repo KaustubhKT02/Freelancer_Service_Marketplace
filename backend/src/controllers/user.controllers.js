@@ -1,16 +1,18 @@
 import { asyncHandler } from "../utils/asyncHandler.utils.js";
 import users from "../models/users.models.js";
 import { apiError } from "../utils/apiError.utils.js";
-import {uploadCloudinary} from "../utils/coludinary.utils.js";
+import { uploadCloudinary } from "../utils/coludinary.utils.js";
 import { apiResponse } from "../utils/apiResponse.utils.js";
-import { Op } from 'sequelize';
+import { Op, where } from "sequelize";
 import JWT from "jsonwebtoken";
+import { Where } from "sequelize/lib/utils";
+import { upload } from "../middlewares/multer.middlewares.js";
 
-const generateTokenAndRefreshToken = async(userId) => {
+const generateTokenAndRefreshToken = async (userId) => {
   try {
     const user = await users.findByPk(userId);
-    if(!user) {
-      throw new apiError(404, "User not found")
+    if (!user) {
+      throw new apiError(404, "User not found");
     }
 
     // get user access
@@ -18,15 +20,17 @@ const generateTokenAndRefreshToken = async(userId) => {
     const refreshToken = user.generateRefreshToken();
 
     // save refreshToken in DB
-    user.refreshToken = refreshToken
-    await user.save({validate: false});
+    user.refreshToken = refreshToken;
+    await user.save({ validate: false });
 
-    return {accessToken, refreshToken}
-  } catch(error) {
-    throw new apiError(500, "Somthing went wrong while genrating referesh and access token")
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new apiError(
+      500,
+      "Somthing went wrong while genrating referesh and access token"
+    );
   }
-}
-
+};
 
 const registerUser = asyncHandler(async (req, res) => {
   const { fullname, username, email, password, role, bio } = req.body;
@@ -43,8 +47,8 @@ const registerUser = asyncHandler(async (req, res) => {
   // Check if user already exists
   const existedUser = await users.findOne({
     where: {
-       [ Op.or]: [{ email }, { username }],
-    }
+      [Op.or]: [{ email }, { username }],
+    },
   });
 
   if (existedUser) {
@@ -72,134 +76,220 @@ const registerUser = asyncHandler(async (req, res) => {
     avatar: Profile.url, // Store the Cloudinary URL
   });
 
-  const createUser  = await users.findByPk(newUser.id)
-  if(!createUser) {
-    throw new apiError(500, "User registration failed")
+  const createUser = await users.findByPk(newUser.id);
+  if (!createUser) {
+    throw new apiError(500, "User registration failed");
   }
-
 
   return res
     .status(201)
-    .json(new apiResponse(201, createUser,  "user registered successfully"));
+    .json(new apiResponse(201, createUser, "user registered successfully"));
 });
 
-const loginUser = asyncHandler(async(req, res)=> {
-  
-  const {email, username, password} = req.body;
-  
-  if(!(username || email)) {
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, username, password } = req.body;
+
+  if (!(username || email)) {
     throw new apiError(400, "username or email is required");
   }
 
-  // add filter to push username 
-  const filter = []
-  if(username) filter.push({username});
-  if(email) filter.push({email});
+  // add filter to push username
+  const filter = [];
+  if (username) filter.push({ username });
+  if (email) filter.push({ email });
 
- const user = await users.scope('withSensitive').findOne({
+  const user = await users.scope("withSensitive").findOne({
     where: {
-      [Op.or]: filter
-    }
+      [Op.or]: filter,
+    },
   });
 
-  if(!user) {
-    new apiError(404, "User does not exitst")
+  if (!user) {
+    new apiError(404, "User does not exitst");
   }
 
- const isPasswordVaild = await user.comparePassword(password);
+  const isPasswordVaild = await user.comparePassword(password);
 
- if(!isPasswordVaild) {
-  throw apiError(401, "Invalid user credentials");
- }
+  if (!isPasswordVaild) {
+    throw apiError(401, "Invalid user credentials");
+  }
 
+  const { accessToken, refreshToken } = await generateTokenAndRefreshToken(
+    user.id
+  );
 
-const {accessToken, refreshToken} = await generateTokenAndRefreshToken(user.id)
+  const loginUser = await users.findByPk(user.id, {
+    attributes: { exclude: ["password", "refreshToken"] },
+  });
 
-const loginUser = await users.findByPk(user.id, {
-  attributes: {exclude: ['password', 'refreshToken']}
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new apiResponse(
+        200,
+        {
+          user: loginUser,
+          accessToken,
+          refreshToken,
+        },
+        "USer logged In Successfully"
+      )
+    );
 });
 
-
-const options = {
-  httpOnly: true,
-  secure: true
-}
-
-return res.status(200)
-.cookie("accessToken", accessToken, options)
-.cookie("refreshToken", refreshToken, options)
-.json(new apiResponse(
-  200, 
-  {
-    user: loginUser, accessToken, refreshToken
-  },
-  "USer logged In Successfully"
-)) 
-}) 
-
-const logoutUser = asyncHandler(async(req, res)=> {
+const logoutUser = asyncHandler(async (req, res) => {
   const [update] = await users.update(
-    {refreshToken: null}, 
-    {where: {id: req.user.id,}}
-  )
+    { refreshToken: null },
+    { where: { id: req.user.id } }
+  );
 
-  if(!update) {
-    throw apiError(401, "User Not Found")
+  if (!update) {
+    throw apiError(401, "User Not Found");
   }
 
   const options = {
     httpOnly: true,
     secure: true,
-  }
+  };
 
   return res
-  .status(200)
-  .clearCookie("accessToken", options)
-  .clearCookie("refreshToken", options)
-  .json(new apiResponse(200, {}, "User logged Out"))
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new apiResponse(200, {}, "User logged Out"));
+});
 
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
 
-})
-
-const refreshAccessToken =asyncHandler(async (req, res)=> {
-  const incomingRefreshToken =  req.cookies.refreshToken || req.body.refreshToken;
-
-  if(!incomingRefreshToken) {
-    throw new apiError(401, "unauthorizzed request");
+  if (!incomingRefreshToken) {
+    throw new apiError(401, "unauthorized request");
   }
 
- try {
-   const verifyToken = JWT.verify(incomingRefreshToken, process.env.JWT_REFRESH_SECRET);
- 
-   const user = users.findByPk(verifyToken?.id)
- 
-   if(!user) {
-     throw new apiError(401, "Invalid refresh token")
-   }
- 
-   if(incomingRefreshToken !== user?.refreshToken) {
-     throw new apiError(401, "Refresh token is expired or used")
-   }
- 
-   const options = {
-     httpOnly:true,
-     secure: true
-   } 
- 
-   const {accessToken, newRefreshToken} =  await generateTokenAndRefreshToken(user.id);
- 
-   return res.status(200)
-   .cookie("accessToken", accessToken)
-   .cookie("refreshToken", newRefreshToken)
-   .json(
-     new apiResponse(
-       200, "Access token refreshed"
-     )
-   )
- } catch (error) {
-  throw new apiError(401, error?.message || "Invalid Token")
- }
-})
+  try {
+    const verifyToken = JWT.verify(
+      incomingRefreshToken,
+      process.env.JWT_REFRESH_SECRET
+    );
 
+    const user = users.findByPk(verifyToken?.id);
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+    if (!user) {
+      throw new apiError(401, "Invalid refresh token");
+    }
+
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new apiError(401, "Refresh token is expired or used");
+    }
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+
+    const { accessToken, newRefreshToken } = await generateTokenAndRefreshToken(
+      user.id
+    );
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken)
+      .cookie("refreshToken", newRefreshToken)
+      .json(new apiResponse(200, "Access token refreshed"));
+  } catch (error) {
+    throw new apiError(401, error?.message || "Invalid Token");
+  }
+});
+
+const changeCurrentPAssword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  const user = await users.findByPk(req.user.id);
+  const isPasswordcorrect = await user.comparePassword(oldPassword);
+
+  if (!isPasswordcorrect) {
+    throw new apiError(400, "Invalid Password");
+  }
+
+  user.password = newPassword;
+  await user.save({ validate: false });
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, {}, "Password Change Successfully"));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  res.status(200).json(200, req.user, "Current User Frtched Successfully");
+});
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+  const { fullname, email, bio } = req.body;
+
+  if (!fullname || !email || !bio) {
+    throw new apiError(400, "All feilds are require");
+  }
+
+  const update = await users.update(
+    {
+      fullname: fullname,
+      email: email,
+      bio: bio,
+    },
+    {
+      where: {
+        id: req.user?.id,
+      },
+    },
+    { new: true }
+  );
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, update, "Account details Updataed"));
+});
+
+const updateUserAvtar = asyncHandler(async (req, res) => {
+  const avatarLocalPAth = req.file?.path;
+
+  if (!avatarLocalPAth) {
+    throw new apiError(400, "Avatar file is missing");
+  }
+
+  const avatar = await uploadCloudinary(avatarLocalPAth);
+
+  if (!avatar.url) {
+    throw new apiError(400, "Error while uploading on avtar");
+  }
+
+  const update = await users.update(
+    { avatar: avatar.url },
+    {
+      where: {
+        id: req.user?.id,
+      },
+    },
+    { new: true }
+  )
+
+  return res.status(200).json(new apiResponse(200, update, "User update successfully"))
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  getCurrentUser,
+  changeCurrentPAssword,
+  updateAccountDetails,
+  updateUserAvtar,
+};
