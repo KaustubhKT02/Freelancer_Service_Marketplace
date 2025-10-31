@@ -3,10 +3,9 @@ import users from "../models/users.models.js";
 import { apiError } from "../utils/apiError.utils.js";
 import { uploadCloudinary } from "../utils/coludinary.utils.js";
 import { apiResponse } from "../utils/apiResponse.utils.js";
-import { Op, where } from "sequelize";
+import { Op } from "sequelize";
 import JWT from "jsonwebtoken";
-import { Where } from "sequelize/lib/utils";
-import { upload } from "../middlewares/multer.middlewares.js";
+
 
 const generateTokenAndRefreshToken = async (userId) => {
   try {
@@ -55,6 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new apiError(409, "User with this email or username already exists");
   }
 
+ 
   const profilePicture = req.file?.path; // Access the uploaded file path
   if (!profilePicture) {
     throw new apiError(400, "Profile picture is required");

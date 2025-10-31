@@ -1,8 +1,9 @@
 import express from 'express';
 import { changeCurrentPAssword, getCurrentUser, loginUser, logoutUser, refreshAccessToken, registerUser, updateAccountDetails, updateUserAvtar } from '../controllers/user.controllers.js';
-import { verifyJWT } from '../middlewares/auth.middlewares.js';
 const router = express.Router();
 import {upload} from '../middlewares/multer.middlewares.js'
+import { verifyJWT } from '../middlewares/auth.middlewares.js';
+
 
 
 router.route('/register').post(
