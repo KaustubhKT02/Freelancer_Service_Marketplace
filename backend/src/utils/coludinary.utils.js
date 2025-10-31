@@ -22,12 +22,12 @@ const uploadCloudinary = async (localFilePath) => {
         });
         // console.log('Cloudinary upload result:', result.url);
 
-       await fs.unlinkSync(localFilePath);
+       await fs.unlink(localFilePath);
         return result;
         
 
     } catch (error) {
-        await fs.unlinkSync(localFilePath);
+        await fs.unlink(localFilePath);
         console.error('Error uploading to Cloudinary:', error);
         throw error;
     }

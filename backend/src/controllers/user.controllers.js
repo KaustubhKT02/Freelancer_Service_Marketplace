@@ -212,7 +212,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const changeCurrentPAssword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
-  const user = await users.findByPk(req.user.id);
+  const user = await users.scope('withSensitive').findByPk(req.user.id);
   const isPasswordcorrect = await user.comparePassword(oldPassword);
 
   if (!isPasswordcorrect) {
@@ -220,7 +220,7 @@ const changeCurrentPAssword = asyncHandler(async (req, res) => {
   }
 
   user.password = newPassword;
-  await user.save({ validate: false });
+  await user.save({validate:false});
 
   return res
     .status(200)
@@ -228,47 +228,55 @@ const changeCurrentPAssword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  res.status(200).json(200, req.user, "Current User Frtched Successfully");
+  return res.status(200)
+  .json(new apiResponse(200, req.user, "User detail fetch successfully"));
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullname, email, bio } = req.body;
 
+  // Validate input
   if (!fullname || !email || !bio) {
-    throw new apiError(400, "All feilds are require");
+    throw new apiError(400, "All fields are required");
   }
 
-  const update = await users.update(
-    {
-      fullname: fullname,
-      email: email,
-      bio: bio,
-    },
-    {
-      where: {
-        id: req.user?.id,
-      },
-    },
-    { new: true }
+  // Prevent duplicate email
+  const existingUser = await users.findOne({ where: { email } });
+  if (existingUser && existingUser.id !== req.user.id) {
+    throw new apiError(400, "Email already in use");
+  }
+
+  // Update user details
+  await users.update(
+    { fullname, email, bio },
+    { where: { id: req.user?.id } }
   );
 
+  // Fetch updated user info
+  const updatedUser = await users.findByPk(req.user.id, {
+    attributes: ["id", "fullname", "email", "bio"],
+  });
+
+  // Return success response
   return res
     .status(200)
-    .json(new apiResponse(200, update, "Account details Updataed"));
+    .json(new apiResponse(200, updatedUser, "Account details updated"));
 });
 
 const updateUserAvtar = asyncHandler(async (req, res) => {
-  const avatarLocalPAth = req.file?.path;
+  const avatarLocalPath = req.file?.path;
 
-  if (!avatarLocalPAth) {
+  if (!avatarLocalPath) {
     throw new apiError(400, "Avatar file is missing");
   }
 
-  const avatar = await uploadCloudinary(avatarLocalPAth);
+  const avatar = await uploadCloudinary(avatarLocalPath);
 
   if (!avatar.url) {
     throw new apiError(400, "Error while uploading on avtar");
   }
+
+
 
   const update = await users.update(
     { avatar: avatar.url },
@@ -276,11 +284,14 @@ const updateUserAvtar = asyncHandler(async (req, res) => {
       where: {
         id: req.user?.id,
       },
-    },
-    { new: true }
+    }
   )
 
-  return res.status(200).json(new apiResponse(200, update, "User update successfully"))
+  const updatedUser = await users.findByPk(req.user.id, {
+  attributes: ["id", "fullname", "email", "avatar", "bio"],
+});
+
+  return res.status(200).json(new apiResponse(200, updatedUser, "User update successfully"))
 });
 
 export {
