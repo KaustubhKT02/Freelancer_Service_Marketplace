@@ -28,4 +28,41 @@ const createProject = asyncHandler(async (req, res) => {
 });
 
 
-export {createProject}
+// Get All Projects(publics)
+
+const getProject = asyncHandler(async(req, res)=> {
+  // Get Project from database 
+ try {
+   const project = await projects.findAll({
+     include: [{model: users, as: 'client', attributes: ["id", "fullname", "role", "email"]}],
+     order: [["created_at", "Desc"]]
+    })
+ 
+    if(!project) {
+     throw new apiError(401, "Projects not found")
+    }
+ 
+    res.status(200).json( new apiResponse(200, project))
+ } catch (error) {
+  throw new apiError(500, error?.message || "Server Error")
+ }
+});
+
+// Get single project by id 
+const getProjectById = asyncHandler(async(req, res)=> {
+   const {id} = req.params;
+    const project = await projects.findByPk(id, {
+      include: [{model: users, as:'client', attributes: ["id", "fullname", "email"]}]
+    });
+  
+    if(!project) {
+      throw new apiError(404, "Project not found by given id")
+    }
+  
+    res.status(200).json(new apiResponse(200, project, "Project fetch successfully"));
+})
+
+
+
+
+export {createProject, getProject, getProjectById}

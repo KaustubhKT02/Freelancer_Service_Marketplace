@@ -1,11 +1,17 @@
 import express from 'express';
 import { verifyJWT } from '../middlewares/auth.middlewares.js';
 import {roleAuth} from '../middlewares/roleAuth.middleware.js';
-import { createProject } from '../controllers/project.controllers.js';
+import { createProject, getProject, getProjectById } from '../controllers/project.controllers.js';
 const projectRoutes = express.Router();
 
 
-projectRoutes.route('/create').post(verifyJWT, roleAuth('Client'), createProject)
+// Public Route
+projectRoutes.route('/').get(getProject);
+projectRoutes.route('/:id').get(getProjectById)
+
+// Secure route
+projectRoutes.route('/').post(verifyJWT, roleAuth('Client'), createProject)
+
 
 
 export default projectRoutes;

@@ -43,7 +43,7 @@ const users = db.define('users', {
         type: DataTypes.STRING(255),
         allowNull: false,
         validate: {
-            is: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/ 
+            is: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
         }
     },
     role: {

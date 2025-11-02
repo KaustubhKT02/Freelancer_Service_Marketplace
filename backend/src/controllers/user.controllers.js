@@ -54,15 +54,15 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new apiError(409, "User with this email or username already exists");
   }
 
- 
-  const profilePicture = req.file?.path; // Access the uploaded file path
-  if (!profilePicture) {
-    throw new apiError(400, "Profile picture is required");
-  }
+//  Profile picture 
+  let profileUrl = null;
 
-  const Profile = await uploadCloudinary(profilePicture); // Upload to Cloudinary
-  if (!Profile) {
-    throw new apiError(500, "Failed to upload profile picture");
+  if (req.file?.path) {
+    const uploadedImage = await uploadCloudinary(req.file.path);
+    if (!uploadedImage) {
+      throw new apiError(500, "Failed to upload profile picture");
+    }
+    profileUrl = uploadedImage.url;
   }
 
   //    Create new user
@@ -73,7 +73,7 @@ const registerUser = asyncHandler(async (req, res) => {
     password,
     role,
     bio,
-    avatar: Profile.url, // Store the Cloudinary URL
+    avatar: profileUrl || null, // Store the Cloudinary URL
   });
 
   const createUser = await users.findByPk(newUser.id);
