@@ -47,9 +47,9 @@ const users = db.define('users', {
         }
     },
     role: {
-        type: DataTypes.ENUM('Client', 'Freelancer', 'Admin'),
+        type: DataTypes.ENUM('client', 'freelancer', 'admin'),
         allowNull: false,
-        defaultValue: 'Client'
+        defaultValue: 'client'
     },
     bio: {
         type: DataTypes.TEXT,

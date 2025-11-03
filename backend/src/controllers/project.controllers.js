@@ -1,8 +1,5 @@
 import { users, projects } from "../models/models.js";
-import { apiError } from "../utils/apiError.utils.js";
-import { asyncHandler } from "../utils/asyncHandler.utils.js";
-import { apiResponse } from "../utils/apiResponse.utils.js";
-import { json } from "sequelize";
+import { asyncHandler, apiError, apiResponse } from "../utils/utils.js";
 
 const createProject = asyncHandler(async (req, res) => {
   // get data from users
@@ -10,8 +7,8 @@ const createProject = asyncHandler(async (req, res) => {
 
   // check user role
 
-  if (req.user?.role !== "Client") {
-    throw new apiError(401, "Only Client can create projects");
+  if (req.user?.role !== "client") {
+    throw new apiError(401, "Only client can create projects");
   }
 
   const project = await projects.create({
@@ -75,7 +72,7 @@ const updateProject = asyncHandler(async(req, res)=> {
     throw new apiError(400, "project not found");
   }
 
-  if(req.user?.role !== 'Client' && project.client_id !== req.user?.id) {
+  if(req.user?.role !== 'client' && project.client_id !== req.user?.id) {
     throw new apiError(400, "Unauthorized to update this project")
   }
 
@@ -99,7 +96,7 @@ const updateProject = asyncHandler(async(req, res)=> {
     throw new apiError(400, "Project not found")
   }
 
-  if(req.user?.id !== 'Client' && project.client_id !== req.user?.id) {
+  if(req.user?.id !== 'client' && project.client_id !== req.user?.id) {
     throw new apiError(400, "Unauthorized to delete project")
   }
 

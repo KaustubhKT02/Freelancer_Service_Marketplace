@@ -1,10 +1,7 @@
-import { asyncHandler } from "../utils/asyncHandler.utils.js";
-import users from "../models/users.models.js";
-import { apiError } from "../utils/apiError.utils.js";
-import { uploadCloudinary } from "../utils/coludinary.utils.js";
-import { apiResponse } from "../utils/apiResponse.utils.js";
-import { Op } from "sequelize";
-import JWT from "jsonwebtoken";
+import users from '../models/users.models.js';
+import {apiError, apiResponse, asyncHandler, uploadCloudinary} from '../utils/utils.js'
+import { Op } from 'sequelize';
+import JWT from 'jsonwebtoken';
 
 
 const generateTokenAndRefreshToken = async (userId) => {
