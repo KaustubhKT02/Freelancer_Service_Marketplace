@@ -24,9 +24,10 @@ app.use(express.static('public'))
 app.use(cookieParser());
 
 // Routes
-import {userRoutes, projectRoutes} from './routes/routes.js';
+import {userRoutes, projectRoutes, proposalRoute} from './routes/routes.js';
 // User Routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/project', projectRoutes);
+app.use('/api/v1/proposal', projectRoutes)
 
 export default app;
