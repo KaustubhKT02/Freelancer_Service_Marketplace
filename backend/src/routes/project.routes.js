@@ -10,9 +10,9 @@ projectRoutes.route('/').get(getProject);
 projectRoutes.route('/:id').get(getProjectById);
 
 // Secure route
-projectRoutes.route('/').post(verifyJWT, roleAuth('Client'), createProject);
-projectRoutes.route('/update/:id').put(verifyJWT, roleAuth('Client'), updateProject);
-projectRoutes.route('/delete/:id').delete(verifyJWT, roleAuth('Client'), deleteProject)
+projectRoutes.route('/').post(verifyJWT, roleAuth('client'), createProject);
+projectRoutes.route('/update/:id').put(verifyJWT, roleAuth('client'), updateProject);
+projectRoutes.route('/delete/:id').delete(verifyJWT, roleAuth('client'), deleteProject)
 
 
 export default projectRoutes;

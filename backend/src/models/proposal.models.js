@@ -11,7 +11,7 @@ const proposals = db.define('proposals', {
         type: DataTypes.INTEGER,
         allowNull: false,
         unique: true,
-        referances: {
+        references: {
             model: 'projects',
             key: 'id',
             onDelete: 'CASCADE'
@@ -21,7 +21,7 @@ const proposals = db.define('proposals', {
         type: DataTypes.INTEGER,
         allowNull: false,
         unique: true,
-        referances: {
+       references: {
             model: 'users',
             key: 'id',
             onDelete: 'CASCADE'
@@ -34,8 +34,8 @@ const proposals = db.define('proposals', {
     bid_amount: {
         type: DataTypes.DECIMAL(10,2),
         allowNull: false,
-        validators: {
-            greaterThan: 0
+        validate: {
+            min: 0.01
         } 
     },
     status: {
@@ -43,6 +43,6 @@ const proposals = db.define('proposals', {
         allowNull: false,
         defaultValue: 'pending'
     }
-}, {timestamps: true, createdAT: 'created_at'});
+}, {timestamps: true, createdAt: 'created_at'});
 
 export default proposals;
