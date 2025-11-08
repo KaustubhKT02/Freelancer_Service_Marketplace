@@ -29,6 +29,12 @@ const messages = db.define('messages', {
         type: DataTypes.TEXT, 
         allowNull: false,
     },
+
+    attachment_url : {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+
     is_read: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
