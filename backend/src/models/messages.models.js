@@ -30,7 +30,7 @@ const messages = db.define('messages', {
         allowNull: false,
     },
 
-    attachment_url : {
+    attachment: {
         type: DataTypes.STRING,
         allowNull: true
     },

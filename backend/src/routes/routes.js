@@ -1,7 +1,8 @@
 import userRoutes from './user.routes.js';
 import projectRoutes from './project.routes.js';
-import proposalRoutes from './proposal.routes.js'
+import proposalRoutes from './proposal.routes.js';
+import messageRoute from './message.routes.js';
 
 
 
-export{userRoutes, projectRoutes, proposalRoutes}
+export{userRoutes, projectRoutes, proposalRoutes, messageRoute}
