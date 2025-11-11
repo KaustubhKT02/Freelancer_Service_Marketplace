@@ -39,7 +39,7 @@ const proposals = db.define('proposals', {
         } 
     },
     status: {
-        type: DataTypes.ENUM('pending', 'accepted', 'rejected'),
+        type: DataTypes.ENUM('pending', 'accepted', 'rejected', 'awaiting_payment'),
         allowNull: false,
         defaultValue: 'pending'
     }

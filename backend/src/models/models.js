@@ -4,6 +4,7 @@ import projects from "./projects.models.js";
 import proposals from "./proposal.models.js";
 import messages from "./messages.models.js";
 import reviews from "./reviews.models.js";
+import payments from './payments.models.js';
 
 // Associations (Relationships)
 
@@ -42,5 +43,5 @@ db.sync({ alter: true }).then(() => {
 });
 
 
-export { users, projects, proposals, messages, reviews };
+export { users, projects, proposals, messages, reviews, payments };
 

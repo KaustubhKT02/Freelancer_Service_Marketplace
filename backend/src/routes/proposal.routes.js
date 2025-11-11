@@ -1,12 +1,12 @@
 import express from "express";
 import {verifyJWT} from '../middlewares/auth.middlewares.js';
 import {roleAuth} from '../middlewares/roleAuth.middleware.js';
-import {sendProposal, getProposalForProject, getMyProposals, updatePropsalStatus} from '../controllers/proposal.controllers.js'
+import {sendProposal, getProposalForProject, getMyProposals, updateProposalStatus} from '../controllers/proposal.controllers.js'
 const proposalRoutes = express.Router()
 
 proposalRoutes.route('/').post(verifyJWT, roleAuth('freelancer'), sendProposal);
 proposalRoutes.route('/my').get(verifyJWT, roleAuth('freelancer'), getMyProposals);
 proposalRoutes.route('/project/:projectId').get(verifyJWT, roleAuth('client'), getProposalForProject);
-proposalRoutes.route('/:proposalId/status').put(verifyJWT, roleAuth('client'), updatePropsalStatus);
+proposalRoutes.route('/:proposalId/status').put(verifyJWT, roleAuth('client'), updateProposalStatus);
 
 export default proposalRoutes;

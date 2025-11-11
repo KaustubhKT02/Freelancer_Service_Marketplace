@@ -1,4 +1,4 @@
-import { Model, where } from "sequelize";
+import { Model, Transaction, where } from "sequelize";
 import { users, projects, proposals } from "../models/models.js";
 import { asyncHandler, apiError, apiResponse } from "../utils/utils.js";
 
@@ -108,7 +108,7 @@ const getMyProposals = asyncHandler(async (req, res) => {
 });
 
 // Accept/Reject Proposal(client only)
-const updatePropsalStatus = asyncHandler(async (req, res) => {
+const updateProposalStatus = asyncHandler(async (req, res) => {
   const { proposalId } = req.params;
   const { status } = req.body;
 
@@ -124,31 +124,46 @@ const updatePropsalStatus = asyncHandler(async (req, res) => {
     throw new apiError(404, "Proposal not found");
   }
 
-  if (
-    req.user?.role !== "client" ||
-    proposal.project.client_id !== req.user.id
-  ) {
+  //  Authorization check
+  if (req.user?.role !== "client" || proposal.project.client_id !== req.user.id) {
     throw new apiError(403, "Unauthorized to modify proposal");
   }
 
+  // Validate new status
   if (!["accepted", "rejected"].includes(status)) {
-    throw new apiError(400, "Invalid Status");
+    throw new apiError(400, "Invalid status");
   }
 
-  proposal.status = status;
-  await proposal.save();
-
+  // Check for existing accepted proposal BEFORE saving
   if (status === "accepted") {
-    proposal.project.status = "closed";
+    const existingAccept = await proposals.findOne({
+      where: {
+        project_id: proposal.project_id,
+        status: "accepted",
+      },
+    });
+
+    if (existingAccept) {
+      throw new apiError(400, "This project already has an accepted proposal");
+    }
+  }
+
+  // Update proposal status
+  proposal.status = status;
+  await proposal.save({transaction: t});
+
+  // If accepted, update project status
+  if (status === "accepted") {
+    proposal.project.status = "awaiting_payment";
     await proposal.project.save();
   }
 
-  res.status(200).json(new apiResponse(200, `proposal ${status}`, proposal));
+  res.status(200).json(new apiResponse(200, `Proposal ${status}`, proposal));
 });
 
 export {
   sendProposal,
   getProposalForProject,
   getMyProposals,
-  updatePropsalStatus,
+  updateProposalStatus,
 };
