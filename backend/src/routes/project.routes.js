@@ -1,7 +1,7 @@
 import express from 'express';
 import { verifyJWT } from '../middlewares/auth.middlewares.js';
 import {roleAuth} from '../middlewares/roleAuth.middleware.js';
-import { createProject, deleteProject, getProject, getProjectById, updateProject } from '../controllers/project.controllers.js';
+import { createProject, deleteProject, getProject, getProjectById, updateProject, markProjectPaid } from '../controllers/project.controllers.js';
 const projectRoutes = express.Router();
 
 
@@ -12,7 +12,8 @@ projectRoutes.route('/:id').get(getProjectById);
 // Secure route
 projectRoutes.route('/').post(verifyJWT, roleAuth('client'), createProject);
 projectRoutes.route('/update/:id').put(verifyJWT, roleAuth('client'), updateProject);
-projectRoutes.route('/delete/:id').delete(verifyJWT, roleAuth('client'), deleteProject)
+projectRoutes.route('/delete/:id').delete(verifyJWT, roleAuth('client'), deleteProject);
+projectRoutes.route('/mark-paid:projectId').patch(verifyJWT, roleAuth('client'), markProjectPaid);
 
 
 export default projectRoutes;
