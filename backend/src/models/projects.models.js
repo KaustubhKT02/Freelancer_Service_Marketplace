@@ -29,7 +29,7 @@ const projects = db.define('projects', {
     allowNull: false
   },
   status: {
-    type: DataTypes.ENUM('open', 'in progress', 'completed', 'cancelled', 'closed'),
+    type: DataTypes.ENUM('open', 'in progress', 'completed', 'in-review', 'awaiting_payment','cancelled', 'closed'),
     allowNull: false,
     defaultValue: 'open'
   },

@@ -7,4 +7,4 @@ const accountRoutes = express.Router();
 
 accountRoutes.route('/setup').post(verifyJWT, roleAuth('freelancer'), addFreelancerAccount);
 
-export default route;
+export default accountRoutes;

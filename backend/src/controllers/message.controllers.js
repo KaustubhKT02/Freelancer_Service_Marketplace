@@ -24,7 +24,7 @@ const sendMessage = asyncHandler(async (req, res) => {
     const uploadAttachment = await uploadCloudinary(req.file.path);
 
     if (!uploadAttachment) {
-      throw new apiError(500, "Failed to upload profile picture");
+      throw new apiError(500, "Failed to upload attachment");
     }
 
     attachment_url = uploadAttachment.url;

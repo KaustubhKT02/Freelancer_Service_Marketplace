@@ -19,13 +19,13 @@ const addFreelancerAccount = asyncHandler(async(req, res)=> {
    const existing = await freelancer_accounts.findOne({where: {user_id: req.user?.id}});
 
    if(existing) {
-    await existing.update {
+    await existing.update({
         upi_id,
         account_holder_name,
         account_number,
         ifsc_code,
         bank_name
-    }
+    })
 
     return res.status(200).json(new apiResponse(200, existing, "Freelancer payment info updated"))
    }

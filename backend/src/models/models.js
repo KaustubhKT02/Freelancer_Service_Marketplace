@@ -4,8 +4,9 @@ import projects from "./projects.models.js";
 import proposals from "./proposal.models.js";
 import messages from "./messages.models.js";
 import reviews from "./reviews.models.js";
-import payments from './payments.models.js';
 import freelancer_accounts from './freelancer_account.models.js';
+import project_delivery from './delivery.models.js';
+
 
 // Associations (Relationships)
 
@@ -39,6 +40,12 @@ reviews.belongsTo(projects, { foreignKey: 'project_id', as: 'project' });
 users.hasOne(freelancer_accounts, {foreignKey: 'user_id'})
 freelancer_accounts.belongsTo(users, {foreignKey: 'user_id'});
 
+// project - project_delivery (one-to-one ) (A Project can have a sing project delivery)
+projects.hasOne(project_delivery, {foreignKey: 'project_id'})
+project_delivery.belongsTo(projects, {foreignKey: 'project_id'})
+project_delivery.belongsTo(users, {foreignKey: 'freelancer_id'})
+
+
 
 // Sync all models with the database
 db.sync({ alter: true }).then(() => {
@@ -49,5 +56,5 @@ db.sync({ alter: true }).then(() => {
 
 
 
-export { users, projects, proposals, messages, reviews, payments, freelancer_accounts };
+export { users, projects, proposals, messages, reviews, freelancer_accounts, project_delivery };
 
