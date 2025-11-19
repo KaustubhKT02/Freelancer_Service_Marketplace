@@ -1,4 +1,4 @@
-import { projects, proposals, freelancer_accounts } from "../models/models.js";
+import { projects, proposals, freelancer_accounts, users } from "../models/models.js";
 import { asyncHandler, apiResponse, apiError } from "../utils/utils.js";
 
 // Genrate UPI payments link for direct payment
@@ -22,7 +22,7 @@ const genrateUPIPaymentLink = asyncHandler(async (req, res) => {
     throw new apiError(404, "No accepted freelancer for this project");
   }
 
-  const freelancer = await user.findByPk(acceptedProposal.freelancer_id);
+  const freelancer = await users.findByPk(acceptedProposal.freelancer_id);
   if (!freelancer) {
     throw new apiError(404, "Freelancer not found");
   }
@@ -39,7 +39,7 @@ const genrateUPIPaymentLink = asyncHandler(async (req, res) => {
 
   const upiUrl = `upi://pay?pa=${account.upi_id}&pn=${encodeURIComponent(
     account.account_holder_name
-  )}&am=${project.budget}&cu=INR&tn=${encodeURIComponent(project.title)}`;
+  )}&am=${acceptedProposal.bid_amount}&cu=INR&tn=${encodeURIComponent(project.title)}`;
 
   res
     .status(200)

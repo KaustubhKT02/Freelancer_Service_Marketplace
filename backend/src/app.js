@@ -29,6 +29,7 @@ import {
   paymentRoutes,
   accountRoutes,
   deliveryRoutes,
+  reviewRoutes
 } from "./routes/routes.js";
 // User Routes
 app.use("/api/v1/users", userRoutes);
@@ -38,5 +39,6 @@ app.use("/api/v1/messages", messageRoute);
 app.use("/api/v1/freelancer-account", accountRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/project-delivery", deliveryRoutes)
+app.use("/api/v1/reviews", reviewRoutes)
 
 export default app;

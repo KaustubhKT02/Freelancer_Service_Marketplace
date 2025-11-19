@@ -1,4 +1,4 @@
-import { where } from "sequelize";
+
 import { projects, proposals, project_delivery } from "../models/models.js";
 import {
   asyncHandler,
@@ -18,11 +18,11 @@ const deliveryProject = asyncHandler(async (req, res) => {
     throw new apiError(404, "Project not found");
   }
 
-  const freelancer = await proposals.findOne({
+  const freelancerProposal = await proposals.findOne({
     where: { freelancer_id: req.user?.id, project_id: projectId },
   });
 
-  if (req.user.role !== "freelancer" || req.user?.id !== freelancer) {
+  if (req.user.role !== "freelancer" || req.user?.id !== freelancerProposal.freelancer_id) {
     throw new apiError(403, "You can't delivery this project");
   }
 
@@ -46,6 +46,7 @@ const deliveryProject = asyncHandler(async (req, res) => {
   });
 
   await project.update({ status: "in-review" });
+  await freelancerProposal.update({status: 'awaiting_payment'}) 
 
   res
     .status(200)
@@ -67,7 +68,7 @@ const accepteDelivery = asyncHandler(async(req, res)=> {
 
     await project.update({status: 'awaiting_payment'}) 
 
-    res(200).json(200, project, "Delivery accepted. please pay now");
+    res.status(200).json(new apiResponse(200, project, "Delivery accepted. Please proceed to payment."))
 });
 
 export { deliveryProject, accepteDelivery };

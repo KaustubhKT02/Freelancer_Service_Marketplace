@@ -1,7 +1,7 @@
 import express from 'express';
 import {verifyJWT} from '../middlewares/auth.middlewares.js';
 import {roleAuth} from '../middlewares/roleAuth.middleware.js';
-import {addFreelancerAccount} from '../controllers/freelancerAccount.controller.js'
+import {addFreelancerAccount} from '../controllers/freelancerAccount.controllers.js'
 
 const accountRoutes = express.Router();
 

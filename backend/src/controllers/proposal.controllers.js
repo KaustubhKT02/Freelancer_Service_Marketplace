@@ -146,6 +146,7 @@ const updateProposalStatus = asyncHandler(async (req, res) => {
     if (existingAccept) {
       throw new apiError(400, "This project already has an accepted proposal");
     }
+
   }
 
   // Update proposal status
