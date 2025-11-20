@@ -16,7 +16,7 @@ const createReview = asyncHandler(async (req, res) => {
     throw new apiError(404, "Project not found");
   }
 
-  if (project.client_id !== req.user?.id) {
+  if (project.client_id !== req.user.id) {
     throw new apiError(403, "You can not review this project");
   }
 
@@ -27,22 +27,24 @@ const createReview = asyncHandler(async (req, res) => {
     );
   }
 
-  //   Get freelancer id
-  const freelancer = await proposals.findOne({
+  //  acceptedProposal
+
+  const acceptedProposal = await proposals.findOne({
     where: {
       project_id: projectId,
-      client_id: req.user.id,
+      status: "accepted",
     },
   });
 
-  if (!freelancer) {
-    throw new apiError(404, "Freelancer not found");
+  if (!acceptedProposal) {
+    throw new apiError(404, "No freelancer assigned to this project");
   }
 
   const existing = await reviews.findOne({
     where: {
       project_id: projectId,
       client_id: req.user.id,
+      freelancer_id: acceptedProposal.freelancer_id,
     },
   });
 
@@ -51,9 +53,9 @@ const createReview = asyncHandler(async (req, res) => {
   }
 
   const review = await reviews.create({
-    projectId: projectId,
+    project_id: projectId,
     client_id: req.user.id,
-    freelancer_id: freelancer.freelancer_id,
+    freelancer_id: acceptedProposal.freelancer_id,
     rating,
     comment,
   });
@@ -61,7 +63,7 @@ const createReview = asyncHandler(async (req, res) => {
   // update freelancer rating avrage
   const allReviews = await reviews.findAll({
     where: {
-      freelancer_id: freelancer.freelancer_id,
+      freelancer_id: acceptedProposal.freelancer_id,
     },
   });
 
@@ -72,12 +74,12 @@ const createReview = asyncHandler(async (req, res) => {
     {
       rating_avg: avg.toFixed(1),
     },
-    { where: { id: freelancer.freelancer_id } }
+    { where: { id: acceptedProposal.freelancer_id } }
   );
 
   res
-    .status(200)
-    .json(new apiResponse(200, review, "Review submitted successfully"));
+    .status(201)
+    .json(new apiResponse(201, review, "Review submitted successfully"));
 });
 
 //  Get Reviwes for freelancer
@@ -92,7 +94,7 @@ const getReview = asyncHandler(async (req, res) => {
     include: {
       model: users,
       as: "client",
-      attributes: ["id", "name", "avatar"],
+      attributes: ["id", "fullname", "avatar"],
     },
     order: [["createdAt", "DESC"]],
   });
@@ -109,8 +111,9 @@ const getProjectReview = asyncHandler(async (req, res) => {
   const review = await reviews.findAll({
     where: { project_id: projectId },
     include: [
-      { model: users, as: "client", attributes: ["id", "name", "avatar"] },
+      { model: users, as: "client", attributes: ["id", "fullname", "avatar"] },
     ],
+    order: [["createdAt", "DESC"]],
   });
 
   res.status(200).json(new apiResponse(200, review, "Project review fetched"));

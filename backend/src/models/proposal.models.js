@@ -1,48 +1,70 @@
-import {db} from '../config/db.config.js';
-import { DataTypes } from 'sequelize';
+import { db } from "../config/db.config.js";
+import { DataTypes } from "sequelize";
 
-const proposals = db.define('proposals', {
+const proposals = db.define(
+  "proposals",
+  {
     id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    }, 
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+
     project_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        unique: true,
-        references: {
-            model: 'projects',
-            key: 'id',
-            onDelete: 'CASCADE'
-        }
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "projects",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
+
     freelancer_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        unique: true,
-       references: {
-            model: 'users',
-            key: 'id',
-            onDelete: 'CASCADE'
-        }
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "users",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
+
     cover_letter: {
-        type: DataTypes.TEXT,
-        allowNull: false
+      type: DataTypes.TEXT,
+      allowNull: false,
     },
+
     bid_amount: {
-        type: DataTypes.DECIMAL(10,2),
-        allowNull: false,
-        validate: {
-            min: 0.01
-        } 
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      validate: { min: 1 },
     },
+
     status: {
-        type: DataTypes.ENUM('pending', 'accepted', 'rejected', 'awaiting_payment'),
-        allowNull: false,
-        defaultValue: 'pending'
-    }
-}, {timestamps: true, createdAt: 'created_at'});
+      type: DataTypes.ENUM(
+        "pending",
+        "accepted",
+        "rejected",
+        "awaiting_payment",
+        "paid",
+        "completed",
+        "cancelled"
+      ),
+      defaultValue: "pending",
+    },
+  },
+  {
+    timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ["project_id", "freelancer_id"],
+      },
+    ],
+  }
+);
 
 export default proposals;

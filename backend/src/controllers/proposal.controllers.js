@@ -1,4 +1,4 @@
-import { Model, Transaction, where } from "sequelize";
+import { Op } from "sequelize";
 import { users, projects, proposals } from "../models/models.js";
 import { asyncHandler, apiError, apiResponse } from "../utils/utils.js";
 
@@ -8,16 +8,20 @@ const sendProposal = asyncHandler(async (req, res) => {
   const { project_id, cover_letter, bid_amount } = req.body;
 
   if (!project_id || !cover_letter || !bid_amount) {
-    throw new apiError(401, "All field are required");
+    throw new apiError(400, "All field are required");
   }
 
-  if (req.user?.role !== "freelancer") {
+  if (req.user.role !== "freelancer") {
     throw new apiError(403, "Only Freelancers can submit proposals");
   }
 
   const project = await projects.findByPk(project_id);
   if (!project) {
     throw new apiError(404, "Project not found");
+  }
+
+  if (project.status !== "open") {
+    throw new apiError(400, "Cannot send proposal. Project is not open");
   }
 
   const existing = await proposals.findOne({
@@ -29,21 +33,21 @@ const sendProposal = asyncHandler(async (req, res) => {
 
   if (existing) {
     throw new apiError(
-      500,
+      400,
       "You already submitted a proposal for this project"
     );
   }
 
   const proposal = await proposals.create({
     project_id,
-    freelancer_id: req.user?.id,
+    freelancer_id: req.user.id,
     bid_amount,
     cover_letter,
   });
 
   res
-    .status(200)
-    .json(new apiResponse(200, proposal, "propsal submited successfully."));
+    .status(201)
+    .json(new apiResponse(201, proposal, "propsal submited successfully."));
 });
 
 // Get all proposal (client only)
@@ -56,11 +60,8 @@ const getProposalForProject = asyncHandler(async (req, res) => {
     throw new apiError(404, "Project not found");
   }
 
-  if (req.user?.role !== "client" || project.client_id !== req.user?.id) {
-    throw new apiError(
-      403,
-      "Only clients can view proposals for their projects"
-    );
+  if (req.user.role !== "client" || req.user.id !== project.client_id) {
+    throw new apiError(403, "Unauthorized to view proposals for this project");
   }
 
   const proposal = await proposals.findAll({
@@ -69,10 +70,10 @@ const getProposalForProject = asyncHandler(async (req, res) => {
       {
         model: users,
         as: "freelancer",
-        attributes: ["id", "fullname", "email", "rating_avg"],
+        attributes: ["id", "fullname", "email", "rating_avg", "avatar"],
       },
     ],
-    order: [["created_at", "DESC"]],
+    order: [["createdAt", "DESC"]],
   });
 
   res
@@ -83,7 +84,7 @@ const getProposalForProject = asyncHandler(async (req, res) => {
 // Get all proposals (freelancer)
 
 const getMyProposals = asyncHandler(async (req, res) => {
-  if (req.user?.role !== "freelancer") {
+  if (req.user.role !== "freelancer") {
     throw new apiError(
       403,
       "Access denied: only freelancers can view their proposals"
@@ -91,15 +92,15 @@ const getMyProposals = asyncHandler(async (req, res) => {
   }
 
   const proposal = await proposals.findAll({
-    where: { freelancer_id: req.user?.id },
+    where: { freelancer_id: req.user.id },
     include: [
       {
         model: projects,
         as: "project",
-        attributes: ["title", "budget", "status"],
+        attributes: ["id", "title", "budget", "status", "category"],
       },
     ],
-    order: [["created_at", "DESC"]],
+    order: [["createdAt", "DESC"]],
   });
 
   res
@@ -112,11 +113,15 @@ const updateProposalStatus = asyncHandler(async (req, res) => {
   const { proposalId } = req.params;
   const { status } = req.body;
 
+  if (!["accepted", "rejected"].includes(status)) {
+    throw new apiError(400, "Invalid status. Must be accepted or rejected");
+  }
+
   const proposal = await proposals.findByPk(proposalId, {
     include: {
       model: projects,
       as: "project",
-      attributes: ["id", "client_id", "status", "title"],
+      attributes: ["id", "client_id", "title", "status"],
     },
   });
 
@@ -125,13 +130,11 @@ const updateProposalStatus = asyncHandler(async (req, res) => {
   }
 
   //  Authorization check
-  if (req.user?.role !== "client" || proposal.project.client_id !== req.user.id) {
-    throw new apiError(403, "Unauthorized to modify proposal");
-  }
-
-  // Validate new status
-  if (!["accepted", "rejected"].includes(status)) {
-    throw new apiError(400, "Invalid status");
+  if (
+    req.user.role !== "client" ||
+    req.user.id !== proposal.project.client_id
+  ) {
+    throw new apiError(403, "Unauthorized to update this proposal");
   }
 
   // Check for existing accepted proposal BEFORE saving
@@ -140,23 +143,21 @@ const updateProposalStatus = asyncHandler(async (req, res) => {
       where: {
         project_id: proposal.project_id,
         status: "accepted",
+        id: { [Op.ne]: proposalId },
       },
     });
 
     if (existingAccept) {
       throw new apiError(400, "This project already has an accepted proposal");
     }
-
   }
 
   // Update proposal status
-  proposal.status = status;
-  await proposal.save({transaction: t});
+  await proposal.update({ status });
 
   // If accepted, update project status
   if (status === "accepted") {
-    proposal.project.status = "awaiting_payment";
-    await proposal.project.save();
+    await proposal.project.update({ status: "in progress" });
   }
 
   res.status(200).json(new apiResponse(200, `Proposal ${status}`, proposal));

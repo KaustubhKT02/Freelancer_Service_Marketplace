@@ -102,7 +102,7 @@ const loginUser = asyncHandler(async (req, res) => {
   });
 
   if (!user) {
-    new apiError(404, "User does not exitst");
+   throw new apiError(404, "User does not exitst");
   }
 
   const isPasswordVaild = await user.comparePassword(password);
@@ -177,7 +177,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       process.env.JWT_REFRESH_SECRET
     );
 
-    const user = users.findByPk(verifyToken?.id);
+    const user = await users.findByPk(verifyToken?.id);
 
     if (!user) {
       throw new apiError(401, "Invalid refresh token");

@@ -9,6 +9,7 @@ const project_delivery = db.define(
       autoIncrement: true,
       primaryKey: true,
     },
+
     project_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -16,7 +17,10 @@ const project_delivery = db.define(
         model: "projects",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
+
     freelancer_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -24,14 +28,28 @@ const project_delivery = db.define(
         model: "users",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
+
     text_note: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+
     file_url: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+
+    status: {
+      type: DataTypes.ENUM(
+        "delivered",
+        "accepted",
+        "rejected",
+        "revision_requested"
+      ),
+      defaultValue: "delivered",
     },
   },
   { timestamps: true }
