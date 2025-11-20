@@ -5,7 +5,7 @@ import proposals from "./proposal.models.js";
 import messages from "./messages.models.js";
 import reviews from "./reviews.models.js";
 import freelancer_accounts from './freelancer_account.models.js';
-import payment_logs from "./payment_logs.models.js";
+import payments from './payment_log.models.js'
 import project_delivery from './delivery.models.js';
 
 
@@ -46,14 +46,14 @@ project_delivery.belongsTo(projects, { foreignKey: "project_id" });
 project_delivery.belongsTo(users, { foreignKey: "freelancer_id" });
 
 // Payment Logs
-projects.hasMany(payment_logs, { foreignKey: "project_id", as: "payments" });
-payment_logs.belongsTo(projects, { foreignKey: "project_id" });
+projects.hasMany(payments, { foreignKey: "project_id", as: "payments" });
+payments.belongsTo(projects, { foreignKey: "project_id" });
 
-users.hasMany(payment_logs, { foreignKey: "client_id", as: "clientPayments" });
-users.hasMany(payment_logs, { foreignKey: "freelancer_id", as: "freelancerPayments" });
+users.hasMany(payments, { foreignKey: "client_id", as: "clientPayments" });
+users.hasMany(payments, { foreignKey: "freelancer_id", as: "freelancerPayments" });
 
-payment_logs.belongsTo(users, { foreignKey: "client_id", as: "client" });
-payment_logs.belongsTo(users, { foreignKey: "freelancer_id", as: "freelancer" });
+payments.belongsTo(users, { foreignKey: "client_id", as: "client" });
+payments.belongsTo(users, { foreignKey: "freelancer_id", as: "freelancer" });
 
 
 // Sync all models with the database
@@ -65,5 +65,5 @@ db.sync({ alter: true }).then(() => {
 
 
 
-export { users, projects, proposals, messages, reviews, freelancer_accounts, payment_logs , project_delivery };
+export { users, projects, proposals, messages, reviews, freelancer_accounts, payments, project_delivery };
 

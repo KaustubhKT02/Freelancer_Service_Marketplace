@@ -3,6 +3,7 @@ import {
   proposals,
   freelancer_accounts,
   users,
+  payments
 } from "../models/models.js";
 import { asyncHandler, apiResponse, apiError } from "../utils/utils.js";
 
@@ -48,7 +49,7 @@ const genrateUPIPaymentLink = asyncHandler(async (req, res) => {
     project.title
   )}`;
 
-  await payment_logs.create({
+  await payments.create({
     project_id: project.id,
     client_id: req.user.id,
     freelancer_id: freelancer.id,

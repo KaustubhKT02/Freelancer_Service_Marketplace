@@ -5,7 +5,7 @@ import {
   proposals,
   messages,
   reviews,
-  payment_logs
+  payments
 } from "../models/models.js";
 import { asyncHandler, apiError, apiResponse } from "../utils/utils.js";
 
@@ -50,7 +50,7 @@ const clientDashboard = asyncHandler(async (req, res) => {
   });
 
   // Payments made (direct payment logs from you table)
-  const PaymentsDone = await payment_logs.count({
+  const PaymentsDone = await payments.count({
     where: {client_id: clientId}
   })
 
@@ -116,7 +116,7 @@ const freelancerDashboard = asyncHandler(async (req, res) => {
     limit: 5,
   });
   // Approx earning count (direct payment -> count payment)
-  const earnings = await payment_logs.count({where: {
+  const earnings = await payments.count({where: {
     freelancer_id: freelancerId
   }})
 
@@ -161,8 +161,8 @@ const adminDashboard = asyncHandler(async (req, res) => {
   });
 
   // payment overviews
-  const totalPayments = await payment_logs.count();
-  const totalPaidAmount = await payment_logs.sum("amount")
+  const totalPayments = await payments.count();
+  const totalPaidAmount = await payments.sum("amount")
 
   const data = {
     totalUsers,
