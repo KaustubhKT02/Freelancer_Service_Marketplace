@@ -54,13 +54,20 @@ const clientDashboard = asyncHandler(async (req, res) => {
     where: {client_id: clientId}
   })
 
+  //  payments paid
+
+  const totalPaymentsPaid = await payments.sum(amount, {
+    where: {client_id: clientId}
+  })
+
   const data = {
     totalProject,
     completedProjects,
     activeProjects,
     totalProposalReecived,
     recentMessages,
-    PaymentsDone
+    PaymentsDone,
+    totalPaymentsPaid
   };
 
   res
@@ -120,6 +127,12 @@ const freelancerDashboard = asyncHandler(async (req, res) => {
     freelancer_id: freelancerId
   }})
 
+  // total earning 
+
+  const totalEarnings = await payments.sum(amount, {
+    where: {freelancer_id: freelancerId}
+  })
+
   const data = {
     totalProposalSend,
     acceptedProposals,
@@ -127,7 +140,8 @@ const freelancerDashboard = asyncHandler(async (req, res) => {
     completedJobs,
     totalReviws,
     latestRevies,
-    earnings
+    earnings,
+    totalEarnings
   };
 
   res.status(200).json(200, data, "Freelancer dashboard fetched");

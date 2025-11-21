@@ -6,6 +6,7 @@ import paymentRoutes from "./payment.routes.js";
 import accountRoutes from "./freelancer_accounts.routes.js";
 import deliveryRoutes from "./project_delivery.routes.js";
 import reviewRoutes from "./review.routes.js";
+import dashboardRouter from "./dashboard.routes.js";
 
 export {
   userRoutes,
@@ -15,5 +16,6 @@ export {
   paymentRoutes,
   accountRoutes,
   deliveryRoutes,
-  reviewRoutes
+  reviewRoutes,
+  dashboardRouter
 };
