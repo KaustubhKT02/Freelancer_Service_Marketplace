@@ -4,6 +4,7 @@ import {
   apiError,
   apiResponse,
   uploadCloudinary,
+  sendNotification,
 } from "../utils/utils.js";
 
 //  freelancer project delivery
@@ -67,6 +68,13 @@ const deliveryProject = asyncHandler(async (req, res) => {
   // Update project + proposal status
   await project.update({ status: "in-review" });
   await freelancerProposal.update({ status: "awaiting_payment" });
+
+  await sendNotification(
+    project.client_id,
+    "Work Delivered",
+    `${req.user.fullname} has submitted the final delivery for ${project.title}.`,
+    "delivery"
+  )
 
   res
     .status(200)

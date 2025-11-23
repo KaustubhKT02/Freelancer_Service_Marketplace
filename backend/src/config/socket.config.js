@@ -59,6 +59,7 @@ export const initSocket = (server) => {
     socket.on("stopTyping", ({ reciver_id, sender_id }) => {
       io.to(`user_${reciver_id}`).emit("stopTyping", { sender_id });
     });
+    
 
     // Disconnect event
     socket.on("disconnect", () => {
@@ -68,5 +69,9 @@ export const initSocket = (server) => {
 
   return io;
 };
+
+
+
+
 
 export const getIo = () => io;

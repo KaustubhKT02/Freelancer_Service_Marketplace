@@ -7,6 +7,7 @@ import accountRoutes from "./freelancer_accounts.routes.js";
 import deliveryRoutes from "./project_delivery.routes.js";
 import reviewRoutes from "./review.routes.js";
 import dashboardRouter from "./dashboard.routes.js";
+import notificationRoutes from "./notification.routes.js";
 
 export {
   userRoutes,
@@ -17,5 +18,6 @@ export {
   accountRoutes,
   deliveryRoutes,
   reviewRoutes,
-  dashboardRouter
+  dashboardRouter,
+  notificationRoutes
 };

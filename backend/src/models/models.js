@@ -1,13 +1,13 @@
-import {db} from '../config/db.config.js';
+import { db } from "../config/db.config.js";
 import users from "./users.models.js";
 import projects from "./projects.models.js";
 import proposals from "./proposal.models.js";
 import messages from "./messages.models.js";
 import reviews from "./reviews.models.js";
-import freelancer_accounts from './freelancer_account.models.js';
-import payments from './payment_log.models.js'
-import project_delivery from './delivery.models.js';
-
+import freelancer_accounts from "./freelancer_account.models.js";
+import payments from "./payment_log.models.js";
+import project_delivery from "./delivery.models.js";
+import notification from "./notification.models.js";
 
 // Associations (Relationships)
 
@@ -50,20 +50,36 @@ projects.hasMany(payments, { foreignKey: "project_id", as: "payments" });
 payments.belongsTo(projects, { foreignKey: "project_id" });
 
 users.hasMany(payments, { foreignKey: "client_id", as: "clientPayments" });
-users.hasMany(payments, { foreignKey: "freelancer_id", as: "freelancerPayments" });
+users.hasMany(payments, {
+  foreignKey: "freelancer_id",
+  as: "freelancerPayments",
+});
 
 payments.belongsTo(users, { foreignKey: "client_id", as: "client" });
 payments.belongsTo(users, { foreignKey: "freelancer_id", as: "freelancer" });
 
+// notification
+
+notification.belongsTo(users, { foreignKey: "user_id" });
+users.hasMany(notification, { foreignKey: "user_id" });
 
 // Sync all models with the database
-db.sync({ alter: true }).then(() => {
+db.sync({ alter: true })
+  .then(() => {
     console.log("All models were synchronized successfully.");
-}).catch((error) => {
+  })
+  .catch((error) => {
     console.error("Error synchronizing models:", error);
-});
+  });
 
-
-
-export { users, projects, proposals, messages, reviews, freelancer_accounts, payments, project_delivery };
-
+export {
+  users,
+  projects,
+  proposals,
+  messages,
+  reviews,
+  freelancer_accounts,
+  payments,
+  project_delivery,
+  notification,
+};

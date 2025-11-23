@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { users, projects, proposals } from "../models/models.js";
-import { asyncHandler, apiError, apiResponse } from "../utils/utils.js";
+import { asyncHandler, apiError, apiResponse, sendNotification } from "../utils/utils.js";
 
 // Send Proposal to projec (client only)
 
@@ -44,6 +44,14 @@ const sendProposal = asyncHandler(async (req, res) => {
     bid_amount,
     cover_letter,
   });
+
+
+  await sendNotification(
+    project.client_id,
+    "New Proposal Recieved",
+    `${req.user.fullname} sent a proposal for you project: ${project.title}`,
+    "proposal"
+  )
 
   res
     .status(201)
@@ -159,6 +167,13 @@ const updateProposalStatus = asyncHandler(async (req, res) => {
   if (status === "accepted") {
     await proposal.project.update({ status: "in progress" });
   }
+
+  await sendNotification(
+    proposal.freelancer_id,
+    `proposal ${status}`,
+    `Your proposal for ${proposal.project.title} has been ${status}.`,
+    "proposal"
+  )
 
   res.status(200).json(new apiResponse(200, `Proposal ${status}`, proposal));
 });

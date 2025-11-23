@@ -30,7 +30,8 @@ import {
   accountRoutes,
   deliveryRoutes,
   reviewRoutes,
-  dashboardRouter
+  dashboardRouter,
+  notificationRoutes
 } from "./routes/routes.js";
 // User Routes
 app.use("/api/v1/users", userRoutes);
@@ -42,5 +43,6 @@ app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/project-delivery", deliveryRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/dashboard", dashboardRouter);
+app.use("/api/v1/notification", notificationRoutes);
 
 export default app;

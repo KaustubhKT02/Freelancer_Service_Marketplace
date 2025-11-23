@@ -1,5 +1,5 @@
-import { users, projects } from "../models/models.js";
-import { asyncHandler, apiError, apiResponse } from "../utils/utils.js";
+import { users, projects, proposals } from "../models/models.js";
+import { asyncHandler, apiError, apiResponse, sendNotification } from "../utils/utils.js";
 
 
 // Create project
@@ -130,7 +130,22 @@ const markProjectPaid = asyncHandler(async (req, res) => {
     throw new apiError(403, "You can not  mark this project as paid");
   }
 
+   const freelancer = await proposals.findOne({
+    where: { project_id: projectId, status: "accepted"}
+  })
+
+  if(!freelancer){
+    throw new apiError(404, "No accepted proposal found for this project");
+  }
+
   await project.update({ status: "completed" });
+
+  await sendNotification(
+    freelancer.freelancer_id,
+    "Payment Rekeased",
+    `Client has marked the payment as complete for ${project.title}`,
+    "payment"
+  )
 
   res.status(200).json(new apiResponse(200, project, "Project status updated"));
 });

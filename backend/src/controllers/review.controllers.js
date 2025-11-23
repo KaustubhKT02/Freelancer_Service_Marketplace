@@ -1,4 +1,4 @@
-import { apiError, apiResponse, asyncHandler } from "../utils/utils.js";
+import { apiError, apiResponse, asyncHandler, sendNotification } from "../utils/utils.js";
 import { reviews, projects, proposals, users } from "../models/models.js";
 
 // create Review (client - freelancer)
@@ -76,6 +76,13 @@ const createReview = asyncHandler(async (req, res) => {
     },
     { where: { id: acceptedProposal.freelancer_id } }
   );
+
+  await sendNotification(
+    acceptedProposal.freelancer_id,
+    "New Review Recieved",
+    `You have recieved a new review on ${project.title}`,
+    "review"
+  )
 
   res
     .status(201)
