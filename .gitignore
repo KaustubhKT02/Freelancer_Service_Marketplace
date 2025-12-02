@@ -1,4 +1,6 @@
 Freelancer_Service_Marketplace_Notes.pdf
+Test data.txt
+
 
 # Logs
 logs
@@ -141,3 +143,4 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+

@@ -6,7 +6,7 @@ import JWT from 'jsonwebtoken';
 
 const generateTokenAndRefreshToken = async (userId) => {
   try {
-    const user = await users.findByPk(userId);
+    const user = await users.scope("withSensitive").findByPk(userId);
     if (!user) {
       throw new apiError(404, "User not found");
     }
@@ -108,7 +108,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const isPasswordVaild = await user.comparePassword(password);
 
   if (!isPasswordVaild) {
-    throw apiError(401, "Invalid user credentials");
+    throw  new apiError(401, "Invalid user credentials");
   }
 
   const { accessToken, refreshToken } = await generateTokenAndRefreshToken(
@@ -177,13 +177,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       process.env.JWT_REFRESH_SECRET
     );
 
-    const user = await users.findByPk(verifyToken?.id);
+    const user = await users.scope("withSensitive").findByPk(verifyToken?.id);
 
     if (!user) {
       throw new apiError(401, "Invalid refresh token");
     }
 
-    if (incomingRefreshToken !== user?.refreshToken) {
+    if (incomingRefreshToken !== user.refreshToken) {
       throw new apiError(401, "Refresh token is expired or used");
     }
 
@@ -192,14 +192,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       secure: true,
     };
 
-    const { accessToken, newRefreshToken } = await generateTokenAndRefreshToken(
+    const { accessToken, refreshToken } = await generateTokenAndRefreshToken(
       user.id
     );
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken)
-      .cookie("refreshToken", newRefreshToken)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
       .json(new apiResponse(200, "Access token refreshed"));
   } catch (error) {
     throw new apiError(401, error?.message || "Invalid Token");
@@ -286,9 +286,10 @@ const updateUserAvtar = asyncHandler(async (req, res) => {
 
   const updatedUser = await users.findByPk(req.user.id, {
   attributes: ["id", "fullname", "email", "avatar", "bio"],
-});
 
-  return res.status(200).json(new apiResponse(200, updatedUser, "User update successfully"))
+});
+return res.status(200).json(new apiResponse(200, updatedUser, "User update successfully"))
+  
 });
 
 export {
