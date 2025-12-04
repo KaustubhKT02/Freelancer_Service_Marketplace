@@ -131,7 +131,7 @@ const markProjectPaid = asyncHandler(async (req, res) => {
   }
 
    const freelancer = await proposals.findOne({
-    where: { project_id: projectId, status: "accepted"}
+    where: { project_id: projectId, status: "awaiting_payment"}
   })
 
   if(!freelancer){
@@ -139,6 +139,7 @@ const markProjectPaid = asyncHandler(async (req, res) => {
   }
 
   await project.update({ status: "completed" });
+  await proposals.update({status: "paid"}, {where: {project_id: projectId}})
 
   await sendNotification(
     freelancer.freelancer_id,

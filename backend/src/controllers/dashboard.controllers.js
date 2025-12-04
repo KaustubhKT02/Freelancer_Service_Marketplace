@@ -56,7 +56,7 @@ const clientDashboard = asyncHandler(async (req, res) => {
 
   //  payments paid
 
-  const totalPaymentsPaid = await payments.sum(amount, {
+  const totalPaymentsPaid = await payments.sum("amount", {
     where: {client_id: clientId}
   })
 
@@ -92,7 +92,7 @@ const freelancerDashboard = asyncHandler(async (req, res) => {
     where: { freelancer_id: freelancerId, status: "accepted" },
   });
   // Active jobs
-  const activeJobs = await projects.count({
+  const activeJobs = await proposals.count({
     where: {
       freelancer_id: freelancerId,
       status: "accepted",
@@ -109,7 +109,7 @@ const freelancerDashboard = asyncHandler(async (req, res) => {
   const completedJobs = await proposals.count({
     where: {
       freelancer_id: freelancerId,
-      status: "completed",
+      status: ["completed", "paid"],
     },
   });
   // total reviews
@@ -129,7 +129,7 @@ const freelancerDashboard = asyncHandler(async (req, res) => {
 
   // total earning 
 
-  const totalEarnings = await payments.sum(amount, {
+  const totalEarnings = await payments.sum("amount", {
     where: {freelancer_id: freelancerId}
   })
 
@@ -144,7 +144,7 @@ const freelancerDashboard = asyncHandler(async (req, res) => {
     totalEarnings
   };
 
-  res.status(200).json(200, data, "Freelancer dashboard fetched");
+  res.status(200).json(new apiResponse(200, data, "Freelancer Dashboard fetched"));
 });
 
 // Admin dashboards

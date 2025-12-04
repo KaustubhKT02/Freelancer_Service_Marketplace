@@ -56,7 +56,7 @@ const addFreelancerAccount = asyncHandler(async (req, res) => {
     .json(
       new apiResponse(
         201,
-        account,
+        newAccount,
         "Freelancer payment info added successfully"
       )
     );

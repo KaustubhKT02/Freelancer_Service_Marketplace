@@ -5,7 +5,7 @@ import { reviews, projects, proposals, users } from "../models/models.js";
 
 const createReview = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
-  const { rating, comment } = req.body;
+  const {rating, comment} = req.body;
 
   if (!rating || rating < 1 || rating > 5) {
     throw new apiError(400, "Rating must be between 1 and 5");
@@ -32,7 +32,7 @@ const createReview = asyncHandler(async (req, res) => {
   const acceptedProposal = await proposals.findOne({
     where: {
       project_id: projectId,
-      status: "accepted",
+      status: "paid",
     },
   });
 
@@ -100,7 +100,7 @@ const getReview = asyncHandler(async (req, res) => {
     },
     include: {
       model: users,
-      as: "client",
+      as: "freelancer",
       attributes: ["id", "fullname", "avatar"],
     },
     order: [["createdAt", "DESC"]],
@@ -118,7 +118,7 @@ const getProjectReview = asyncHandler(async (req, res) => {
   const review = await reviews.findAll({
     where: { project_id: projectId },
     include: [
-      { model: users, as: "client", attributes: ["id", "fullname", "avatar"] },
+      { model: users, as: "freelancer", attributes: ["id", "fullname", "avatar"] },
     ],
     order: [["createdAt", "DESC"]],
   });

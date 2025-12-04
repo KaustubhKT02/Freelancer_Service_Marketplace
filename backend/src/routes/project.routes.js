@@ -13,7 +13,7 @@ projectRoutes.route('/:id').get(getProjectById);
 projectRoutes.route('/').post(verifyJWT, roleAuth('client'), createProject);
 projectRoutes.route('/update/:id').put(verifyJWT, roleAuth('client'), updateProject);
 projectRoutes.route('/delete/:id').delete(verifyJWT, roleAuth('client'), deleteProject);
-projectRoutes.route('/mark-paid:projectId').patch(verifyJWT, roleAuth('client'), markProjectPaid);
+projectRoutes.route('/mark-paid/:projectId').patch(verifyJWT, roleAuth('client'), markProjectPaid);
 
 
 export default projectRoutes;
